@@ -1,0 +1,69 @@
+---
+title: "<center>Combination</center>"
+author: Arun Kumar
+date: "July 11, 2015"
+output: 
+  html_document: 
+    toc: yes
+---
+---
+references:
+-id: comb_def
+ URL:"https://en.wikipedia.org/wiki/Combination"
+---
+###What is combination
+In mathematics, a combination is a way of selecting items from a collection, such that (unlike permutations) the order of selection does not matter. In smaller cases it is possible to count the number of combinations. For example given three fruits, say an apple, an orange and a pear, there are three combinations of two that can be drawn from this set: an apple and a pear; an apple and an orange; or a pear and an orange. 
+(Reference: [Combination](https://en.wikipedia.org/wiki/Combination))
+
+###How calculate combination
+Using factorial, if we have to choose r items from n given items and if the order of choosing doesnot matter, then-  
+n^C^r= n!/n!*n!(n-r)!
+
+###R function to calculate combination
+```{r}
+calc_factorial <- function(param1)
+{
+  if(!is.numeric(param1)){
+    print("Please enter numeric value");
+    return();
+  }
+  if(param1 < 0){
+    print("Please enter positive numeric value");
+    return();
+  }
+  y <- 1;
+  for(i in param1:1){
+      y <-y*i;
+  }
+  return(y);
+}
+
+calc_choose <- function(input1, input2)
+{
+  if(!is.numeric(input1) || !is.numeric(input2)){
+    print("Please enter numeric values");
+  }
+  else if(input1 < 0 || input2 < 0){
+    print("Please enter positive numeric value.");
+  }
+  else if(input1 < input2){
+    print("As input 1 is less than input 2 , the answer is 0");
+  }
+  else{
+  value1 <- calc_factorial(input1);
+  value2 <- calc_factorial(input1 - input2);
+  value3 <- calc_factorial(input2);
+  sprintf("%i choose %i is: %i",input1, input2, value1 / (value3 * value2)); 
+  }
+}
+```
+
+###Testing funtion call
+```{r}
+calc_choose(10, 3);
+```
+###Calculate combinations using base R function
+There is a inbuild function "choose" in Base-R package which will serve the same functionality.
+```{r}
+choose(10,3)
+```
