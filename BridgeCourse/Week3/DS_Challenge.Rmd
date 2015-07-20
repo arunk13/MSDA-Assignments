@@ -1,0 +1,48 @@
+---
+title: "Standard Deviation"
+author: "Arun Kumar"
+date: "July 20, 2015"
+output: html_document
+---
+###The question
+Card game. Consider the following card game with a well-shuffled deck of cards. If you draw a red card, you win nothing. If you get a spade, you win $5. For any club, you win $10 plus an extra $20 for the ace of clubs.
+
+(a) Create a probability model for the amount you win at this game. Also, find the expected winnings for a single game and the standard deviation of the winnings.
+
+(b) What is the maximum amount you would be willing to pay to play this game? Explain.
+
+###Data frame
+```{r echo=FALSE}
+X <- c(0,5,10,30);
+names(X) <- c("Red", "Spade", "Club", "Spade");
+PX <- c(26/52, 13/52, 13/52, 1/52);
+names(PX) <- c("P(Red)", "P(Spade)", "P(Club)", "P(Spade)");
+random_variables <- data.frame(cbind(X,PX), row.names = NULL);
+```
+```{r, results='asis'}
+knitr::kable(random_variables)
+```
+
+###Expected Win
+```{r}
+expectedWin_X <- round(sum(random_variables$X * random_variables$PX),2);
+```
+```{r echo=FALSE}
+sprintf("The expected win for the above distribution is %.2f", expectedWin_X);
+```
+
+###Variance
+```{r}
+variance_X <- round(sum(random_variables$PX *(random_variables$X - expectedWin_X)^2),2);
+```
+```{r echo=FALSE}
+sprintf("The variance of win for the above distribution is %.2f", variance_X);
+```
+
+###Standard deviation
+```{r}
+standardDeviation_X <- round(sqrt(variance_X),2);
+```
+```{r echo=FALSE}
+sprintf("The standard deviation of win for the above distribution is %.2f", standardDeviation_X);
+```
