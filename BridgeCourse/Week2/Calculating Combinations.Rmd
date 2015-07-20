@@ -6,7 +6,7 @@ output:
   html_document: 
     toc: yes
 ---
----
+--- 
 references:
 -id: comb_def
  URL:"https://en.wikipedia.org/wiki/Combination"
