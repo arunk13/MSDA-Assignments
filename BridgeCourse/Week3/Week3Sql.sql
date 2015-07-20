@@ -45,3 +45,8 @@ INSERT INTO reviews(review_id, video_id, user_name, review_text, video_rating)
     VALUES (2, 1, 'Megan', 'funny', 4);
 INSERT INTO reviews(review_id, video_id, user_name, review_text, video_rating)
     VALUES (3, 2, 'Leo', 'Awesome', 5);
+
+
+select v.video_title, v.video_length, v.video_url, r.video_rating, r.review_text, r.user_name from video v INNER JOIN reviews r
+ON
+v.video_id = r.video_id
