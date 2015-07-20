@@ -1,0 +1,157 @@
+---
+title: "Obtain phase: Mushrooms database"
+author: "Arun Kumar"
+date: "July 19, 2015"
+output: 
+  html_document: 
+    toc: yes
+---
+
+###Obtain Munshrooms data from web
+Mushrooms data is available from the following link:
+https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data
+
+Reference: [Mushrooms Data Set](https://archive.ics.uci.edu/ml/datasets/Mushroom)
+
+1. Obtain the data from the link:
+```{r eval=FALSE}
+theURL <- "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data;
+mushroomsDB <- read.table(theURL, header = FALSE,  sep = ",", stringsAsFactors = FALSE);
+write.table(mushroomsDB, file = "Mushroom.csv", sep = ",");
+```
+
+2. Upload the data to Github.
+3. Use the "raw" url of the CSV file from Github, else the data retrieved will be wrong.
+
+4. Obtain data from Github url.show
+
+```{r}
+theURL <- "https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/BridgeCourse/Week3/Mushroom.csv";
+mushroomsDB <- read.table(theURL, header = TRUE,  sep = ",", stringsAsFactors = FALSE);
+```
+
+###Overview of the mushroom dataset
+Number of rows in the dataset    : `r nrow(mushroomsDB)`  
+Number of columns in the dataset : `r ncol(mushroomsDB)`
+
+###Subsetting the dataset
+subsetting to a smaller data frame of 100 rows and 7 columns.
+The columns chosen for this analysis are:
+"class", "cap-shape", "cap-surface", "cap-color", "odor", "population", "habitat"
+```{r}
+mushroomsDB <- mushroomsDB[1:10, c(1, 2, 3, 4, 6, 22, 23)]
+names(mushroomsDB) <- c("class", "cap-shape", "cap-surface", "cap-color", "odor", "population", "habitat");
+```
+A snapshot of the subset
+```{r}
+head(mushroomsDB)
+```
+
+###Data transformation
+To transfor each key in column data to their respective values, the below functions are used.
+
+```{r}
+#Below function transforms the class data
+transformClassData <- function(key){
+  switch (key,
+    'p' = 'poisonous',
+    'e' = 'edible'
+  )
+}
+
+#Below function transforms the cap-shape column
+transformCapShapeData <- function(key){
+  switch (key,
+          'b' = 'bell',
+          'c' = 'conical',
+          'x' = 'convex',
+          'f' = 'flat',
+          'k' = 'knobbed',
+          's' = 'sunken'
+  )
+}
+
+#Below function transforms the cap-surface column
+transformCapSurfaceData <- function(key){
+  switch (key,
+          'f' = 'fibrous',
+          'g' = 'grooves',
+          'y' = 'scaly',
+          's' = 'smooth'
+  )
+}
+
+#Below function transforms the cap-color column
+transformCapColorData <- function(key){
+  switch (key,
+          'n' = 'brown',
+          'b' = 'buff',
+          'c' = 'cinnamon',
+          'g' = 'gray',
+          'r' = 'green',
+          'p' = 'pink',
+          'u' = 'purple',
+          'e' = 'red',
+          'w' = 'white',
+          'y' = 'yellow'
+  )
+}
+
+#Below function transforms the odor column
+transformOdorData <- function(key){
+  switch (key,
+          'a' = 'almond',
+          'l' = 'anise',
+          'c' = 'creosote',
+          'y' = 'fishy',
+          'f' = 'foul',
+          'm' = 'musty',
+          'n' = 'none',
+          'p' = 'pungent',
+          's' = 'spicy'
+  )
+}
+
+#Below function transforms the population column
+transformPopulationData <- function(key){
+  switch (key,
+          'a' = 'abundant',
+          'c' = 'clustered',
+          'n' = 'numerous',
+          's' = 'scattered',
+          'v' = 'several',
+          'y' = 'soletary'
+  )
+}
+
+#Below function transforms the habitat column
+transformHabitatData <- function(key){
+  switch (key,
+          'g' = 'grasses',
+          'l' = 'leaves',
+          'm' = 'meadows',
+          'p' = 'paths',
+          'u' = 'urban',
+          'w' = 'waster',
+          'd' = 'woods'
+  )
+}
+```
+
+###Applying data transformation on the mushroom dataset
+```{r}
+mushroomsDB$class <- sapply(mushroomsDB$class, transformClassData);
+mushroomsDB$`cap-shape` <- sapply(mushroomsDB$`cap-shape`, transformCapShapeData);
+mushroomsDB$`cap-color` <- sapply(mushroomsDB$`cap-color`, transformCapColorData);
+mushroomsDB$`cap-surface` <- sapply(mushroomsDB$`cap-surface`, transformCapSurfaceData);
+mushroomsDB$odor <- sapply(mushroomsDB$odor, transformOdorData);
+mushroomsDB$population <- sapply(mushroomsDB$population, transformPopulationData);
+mushroomsDB$habitat <- sapply(mushroomsDB$habitat, transformHabitatData);
+```
+
+A snapshot of transformed data:
+```{r}
+mushroomsDB
+```
+
+
