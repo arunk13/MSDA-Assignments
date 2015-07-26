@@ -1,0 +1,135 @@
+---
+title: "Violent Crime Rates by US State (1973)"
+author: "Arun Kumar"
+date: "July 25, 2015"
+output: 
+  html_document : 
+      toc : yes
+---
+
+###Objective
+To analyze a dataset of US arrest.
+
+###Starting Point
+The dataset if obtained from the below site:
+[http://vincentarelbundock.github.io/](http://vincentarelbundock.github.io/Rdatasets/datasets.html)  
+Dataset reference: [US Arrests](http://vincentarelbundock.github.io/Rdatasets/csv/datasets/USArrests.csv)
+
+###Obtaining the data
+1. Download the data in a csv sheet
+```{r eval=FALSE}
+theURL <- "http://vincentarelbundock.github.io/Rdatasets/csv/datasets/USArrests.csv";
+arrest_data <- read.table(file = theURL, header = TRUE, sep = ",");
+head(arrest_data);
+#State column is named as 'X". Changing the column name to US_State
+colnames(arrest_data)[1] <- "US_State";
+head(arrest_data);
+#Write the data to a CSV
+write.table(arrest_data, file = "us_arrest.csv", sep = ",", row.names = FALSE);
+#The saved file is uploaded to githib and below is the URL which will be used hereafter.
+#https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/BridgeCourse/Week4/us_arrest.csv 
+```
+
+###The dataset
+```{r echo=FALSE}
+theURL <- "https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/BridgeCourse/Week4/us_arrest.csv";
+arrest_data <- read.table(file = theURL, header = TRUE, sep = ",");
+head(arrest_data);
+```
+
+###A brief summary of the dataset
+```{r}
+summary(arrest_data);
+```
+
+###Exploratory analysis
+```{r}
+# g_murder <- ggplot(data = arrest_data_sub, aes(y = Murder, x = US_State, fill = US_State));
+# g_murder + geom_bar(stat = "identity", width = 0.2) + guides(fill = FALSE) + xlab("US States") + ylab("Murder(per 100K)") + ggtitle("Crime rate: Murder rate versus states");
+# g_murder_UrbanPop <- ggplot(data = arrest_data, aes(y = Murder, x = UrbanPop));
+# g_murder_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm);
+# g_rape_UrbanPop <- ggplot(data = arrest_data, aes(y = Rape, x = UrbanPop));
+# g_rape_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm);
+# g_assault_UrbanPop <- ggplot(data = arrest_data, aes(y = Assault, x = UrbanPop));
+# g_assault_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm);
+```
+* Let's find if there is any relationship between variables - Murder, Assault, Rape and percentage of urban population  
+
+Sort the dataset by urban population
+```{r}
+arrest_data_sub <- arrest_data[order(-arrest_data$UrbanPop),];
+```
+```{r echo=FALSE}
+require(ggplot2);
+observation_count <- 7;
+```
+  
+```{r echo=FALSE}
+arrest_data_urbanpop <- head(arrest_data_sub, n = observation_count);
+g_urbanpop <- ggplot(data = arrest_data_urbanpop, aes(y = UrbanPop, x = US_State, fill = US_State));
+g_urbanpop + geom_bar(stat = "identity", width = 0.2) + guides(fill = FALSE) + xlab("US States") + ylab("Urban Population(in %)") + ggtitle("Top 5 US States by percentage of Urban Population (1973)");
+```
+  
+```{r echo=FALSE}
+arrest_data_sub <- arrest_data[order(-arrest_data$Murder),];
+arrest_data_urbanpop <- head(arrest_data_sub, n = observation_count);
+g_urbanpop <- ggplot(data = arrest_data_urbanpop, aes(y = Murder, x = US_State, fill = US_State));
+g_urbanpop + geom_bar(stat = "identity", width = 0.2) + guides(fill = FALSE) + xlab("US States") + ylab("Murder Arrest(per 100K residents)") + ggtitle("Top 5 US States by Murder rate (1973)");
+```
+
+  
+```{r echo=FALSE}
+summary(arrest_data$Murder);
+ggplot(data = arrest_data, aes(y = Murder, x = factor(0))) + geom_boxplot(size = 0.5) + xlab("") + ylab("Murder Arrest(per 100K residents)") + coord_flip() + ggtitle("Summary of murder arrests in 1973");
+```
+
+
+_Fact: On an average there was `r round(mean(arrest_data$Murder))` muderer arrest per 100,000 residents in 1973_ 
+      
+```{r echo=FALSE}
+arrest_data_sub <- arrest_data[order(-arrest_data$Assault),];
+arrest_data_urbanpop <- head(arrest_data_sub, n = observation_count);
+g_urbanpop <- ggplot(data = arrest_data_urbanpop, aes(y = Assault, x = US_State, fill = US_State));
+g_urbanpop + geom_bar(stat = "identity", width = 0.2) + guides(fill = FALSE) + xlab("US States") + ylab("Assault arrest(per 100K residents)") + ggtitle("Top 5 US States by Assault arrest (1973)");
+```
+
+  
+```{r echo=FALSE}
+arrest_data_sub <- arrest_data[order(-arrest_data$Rape),];
+arrest_data_urbanpop <- head(arrest_data_sub, n = observation_count);
+g_urbanpop <- ggplot(data = arrest_data_urbanpop, aes(y = Rape, x = US_State, fill = US_State));
+g_urbanpop + geom_bar(stat = "identity", width = 0.2) + guides(fill = FALSE) + xlab("US States") + ylab("Rape arrest(per 100K residents)") + ggtitle("Top 5 US States by Rape arrest (1973)");
+```
+
+
++ Observation
+Out of the top 5 states by urban population-
+1. California is among one of the top 5 states by rape arrest.
+
+Extending the above study to top 7 states:
+1. California is among one of the top 7 states by rape and assault arrest.
+
+With the available data, it can be concluded that percentage of urban population in cities doesnt have any significant impact on the crime rate.
+Detailed analysis has to be done on the data of arrests in California to understand if there was an impact of urban poplulatio on the crime rates. 
+
++ Let's verify the same observation with the help of a scatter plot on the complete dataset.
+
+```{r echo=FALSE}
+g_assault_UrbanPop <- ggplot(data = arrest_data, aes(y = Murder, x = UrbanPop));
+g_assault_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm) +  xlab("Urban Population") + ylab("Murder arrest(per 100K residents)") + ggtitle("Murder arrest versus Urban Population (1973)");
+```
+
+```{r echo=FALSE}
+g_assault_UrbanPop <- ggplot(data = arrest_data, aes(y = Assault, x = UrbanPop));
+g_assault_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm) +  xlab("Urban Population") + ylab("Assault arrest(per 100K residents)") + ggtitle("Assault arrest versus Urban Population (1973)");
+```
+
+```{r echo=FALSE}
+g_assault_UrbanPop <- ggplot(data = arrest_data, aes(y = Rape, x = UrbanPop));
+g_assault_UrbanPop + geom_point(shape = 1) + geom_smooth(method = lm) +  xlab("Urban Population") + ylab("Rape arrest(per 100K residents)") + ggtitle("Rape arrest versus Urban Population (1973)");
+```
+
+###Observations
+1. The murder and assault arrest does not seem to have any coorelation with urban population.
+2. The number of rape arrest seems to have a coorelation with urban pupulation.
+3. To strengthen the above findings, simialr study has to be done with latest data.
