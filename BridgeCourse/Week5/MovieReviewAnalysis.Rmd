@@ -1,0 +1,123 @@
+---
+title: "Movie Review Analysis"
+author: "Arun Kumar"
+date: "July 26, 2015"
+output: 
+  html_document : 
+      toc : yes
+---
+
+###Required R libraries
+```{r echo=FALSE}
+require(plyr);
+require(ggplot2);
+```
+
+###Objective
+To analyse a dataset of movie rating
+
+###Starting Point
+The dataset if obtained from the below site:
+[http://vincentarelbundock.github.io/](http://vincentarelbundock.github.io/Rdatasets/datasets.html) 
+Dataset reference: [Movie information and user ratings from IMDB.com.](http://vincentarelbundock.github.io/Rdatasets/csv/ggplot2/movies.csv)
+
+###Obtaining the data
+1. Download the data in a csv sheet
+```{r eval=FALSE}
+theURL <- "http://vincentarelbundock.github.io/Rdatasets/csv/ggplot2/movies.csv";
+movie_data <- read.table(file = theURL, header = TRUE, sep = ",");
+head(movie_data);
+#State column is named as 'X". Changing the column name to US_State
+colnames(movie_data)[1] <- "RefNo";
+head(movie_data);
+#Write the data to a CSV
+write.table(movie_data, file = "movie_data.csv", sep = ",", row.names = FALSE);
+#The saved file is uploaded to githib and below is the URL which will be used hereafter.
+#https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/BridgeCourse/Week5/movie_data.csv 
+```
+
+_Note: The tips provided in the below link is followed to clean up the data_
+(Introduction to data cleaning)<https://cran.r-project.org/doc/contrib/de_Jonge+van_der_Loo-Introduction_to_data_cleaning_with_R.pdf>
+
+###Raw Data
+```{r echo=FALSE}
+theURL <- "https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/BridgeCourse/Week5/movie_data.csv";
+movie_data_raw <- read.table(file = theURL, header = TRUE, sep = ",");
+head(movie_data_raw);
+```
+
+###Cleaning and subsetting
+```{r}
+#First column can be removed.
+movie_data <- movie_data_raw[-1];
+```
+
++Summary
+```{r}
+summary(movie_data);
+```
+
++ Out of 58788 records, 53573 record does not have information about the budget. I will remove the budget column from my dataset, as i feel that as the most of the observation is missing this variable data, hence it will not help me infer any understanding.
+```{r}
+movie_data <- movie_data[-4];
+```
+  
+Similarly 53864 movies are missing mpaa ratings. Lets find out the types of movies which are missing the mpaa ratings.
+  
+```{r echo=FALSE}
+#Replacing all the empty values of mpaa rating column with NA
+movie_data$mpaa <- gsub('^$|^ $', NA, movie_data$mpaa);
+freq_missing_mpaa <- count(movie_data[is.na(movie_data$mpaa),], 'year');
+head(arrange(freq_missing_mpaa, -year), n = 5);
+```
+
+###Binning observation into decades of year
+Number of observation with missing year information : `r nrow(movie_data[is.na(movie_data$year),]) + nrow(movie_data[movie_data$year == ' ',]) + nrow(movie_data[movie_data$year == '',]);`
+
+For ease of analysis, we will subset the data from 1900 - till date.
+```{r echo=FALSE}
+movie_data <- movie_data[movie_data$year >= "1900",];
+```
+
+```{r echo=FALSE}
+movie_data$decade <- paste(as.character(trunc(movie_data$year / 10) * 10), as.character((trunc(movie_data$year / 10) * 10) + 10), sep ="-");
+movie_data$decade <- as.factor(movie_data$decade);
+```
+
+Number of movies in by decade
+```{r}
+freq_decade_movie <- count(movie_data, c("decade"));
+g_movie <- ggplot(data = freq_decade_movie, aes(y = freq, x = decade, fill = decade));
+g_movie + geom_bar(stat = "identity", width = 0.2, , position = "identity") + guides(fill = FALSE) + xlab("Decades") + ylab("Number of movies") + ggtitle("Frequency of movies by decades") + theme(axis.text.x = element_text(angle = 45, hjust = 1));
+```
+
+###Evolution of animation movies  
+```{r echo=FALSE}
+movie_data$Animation <- as.factor(movie_data$Animation);
+movie_anim <- movie_data[movie_data$Animation == 1,];
+movie_animation_freq<- count(movie_anim, c("decade"));
+g_movie_anim <- ggplot(data = movie_animation_freq, aes(y = freq, x = decade));
+g_movie_anim +  geom_bar(stat = "identity", width = 0.2 , position = "identity") + guides(fill = FALSE) + xlab("Decades") + ylab("Number of animation movies") + ggtitle("Evolution of animation movies by decades") + theme(axis.text.x = element_text(angle = 45, hjust = 1));
+ggplot(data = movie_anim, aes(y = rating, x = factor(0))) + geom_boxplot(size = 0.5) + xlab("") + ylab("Rating") + coord_flip() + ggtitle("Distribution of animation movie ratings");
+```
+
+Summary of ratings for animation movie
+```{r}
+summary(movie_anim$rating);
+```
+
+###Probability
+```{r echo=FALSE}
+p_anim_movie <- nrow(movie_anim)/nrow(movie_data);
+p_anim_movie_rating6 <- nrow(movie_anim[movie_anim$rating > 6,]) / nrow(movie_data)
+p_answer <- p_anim_movie_rating6/p_anim_movie
+```
+Probability(animation movie) = total number of animation movie/total movie in sample space = `r round(p_anim_movie, digits=4)`
+
+Probability(movie rating > 6 and movie being animation) = `r round(p_anim_movie_rating6,digits=4 )`
+
+Probability of a movie getting rating greater than 6 provided movie is animation movie =
+
+`r round(p_answer, digits = 4)` = `r round(p_answer*100, digits = 4)` %
+
+
