@@ -59,14 +59,15 @@ GROUP BY p.manufacturer;
 #Due to huge data in flights table, I restricted my search to one day's data.
 #Looking at one days data, I see that there is no positive correlation between wind gust and delays.
 
-SELECT a.name as Airport, round(avg(w.wind_gust), 2) as Average_WindGust, round(avg(f.dep_delay), 2) as Average_DepartureDelay
-FROM airports a 
-INNER JOIN flights f ON f.origin = a.faa 
-INNER JOIN weather w ON w.origin = a.faa 
-WHERE f.year = '2013' and f.month = '5' and f.day = '10'
-GROUP BY a.name
-ORDER BY Average_WindGust desc
-LIMIT 10;
+SELECT 	a.name as Airport, round(avg(w.wind_gust), 2) as Average_WindGust, round(avg(f.dep_delay), 2) as Average_DepartureDelay
+FROM 	airports a 
+		INNER JOIN flights f 
+			ON f.origin = a.faa 
+		INNER JOIN weather w 
+			ON w.origin = a.faa 
+WHERE 	f.year = '2013' and f.month = '5' and f.day = '10'
+GROUP 	BY a.name
+ORDER 	BY Average_WindGust desc;
 
 
 
