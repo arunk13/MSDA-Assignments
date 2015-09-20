@@ -1,0 +1,76 @@
+---
+title: 'IS607: Week 4 Assignment'
+author: "Arun Kumar"
+date: "September 19, 2015"
+output: html_document
+---
+
+
+       
+```{r echo=FALSE}
+library(stringr);
+```     
+      
+####4. Describe the types of strings that conform to the following regular expressions and construct an example that is matched that is matched by the regular expression.      
+a. [0-9]+\\$  
+Answer:  Finds a number having digits 0-9 of any length and ends with $.
+```{r}
+question.one <- "My number is 1236534512 but i can also be reached through 2124496571$";  
+unlist(str_extract_all(question.one, "[0-9]+\\$"));
+```
+b. \\b[a-z]{1,4}\\b  
+Answer: Finds words made up of lower case alphabets (a to z) of length 1 to maximum lenth of 4.
+```{r}
+unlist(str_extract_all(question.one, "\\b[a-z]{1,4}\\b"));
+```
+c. .*?\\.txt$
+Answer: Finds any match which ends with ".txt". As its greedy and has ".*", it will identify the whole sentence if the sentence ends with .txt.
+```{r}
+my.file <- "My name 1 is myPersonalDetails.txt";
+unlist(str_extract_all(my.file, ".*?\\.txt$"));
+```
+d. \\d{2}/\\d{2}/\\d{4}
+Answer: Finds any part of the sentence which has number in format - two numbers/two numbers/four numbers
+```{r}
+random.number <- "This is a random abx333/44/333322";
+unlist(str_extract_all(random.number, "\\d{2}/\\d{2}/\\d{4}"))
+```
+e. <(.+?)>.+?</\\1>
+Answer: Find tags wich is a format "<something>content</something>"
+```{r}
+random.tag <- "<html>Hellow from Arun</html>";
+unlist(str_extract_all(random.tag, "<(.+?)>.+?</\\1>"));
+```
+####5. Rewriting the same expression [0-9]+\\$     
+```{r}
+unlist(str_extract_all(question.one, "\\d*\\$"));
+```
+####6.  
+```{r}
+my.email <- "chunkylover53[at]aol[dot]com";
+```
+a. Transforming the string to standard mail format.
+```{r}
+my.email <- str_replace(my.email, "\\[at\\]", "@");
+my.email <- str_replace(my.email, "\\[dot\\]", ".");
+```
+  
+The transformed email address : `r my.email`     
+b. What's wrong in using [[:digit:]] ?
+```{r}
+unlist(str_extract_all(my.email, "[[:digit:]]"));
+```
+#####The expression [[:digit:]] will only identify the first occurence.  
+#####To get the complete number, we need a greedy expression.  
+```{r}
+unlist(str_extract_all(my.email, "[[:digit:]]+"));
+```
+c. Why expression \\D fails to extract the digits.
+#####\\D will match all non-digit occurences.
+```{r}
+unlist(str_extract_all(my.email, "\\D+"));
+```
+#####The correct expression is using \\d
+```{r}
+unlist(str_extract_all(my.email, "\\d+"));
+```
