@@ -1,0 +1,132 @@
+---
+title: "Reading a chess tournament cross table"
+author: "Arun Kumar"
+date: "September 22, 2015"
+output: 
+    html_document:
+      toc: yes
+---
+
+```{r echo=FALSE}
+library(stringr);
+library(plyr);
+```
+
+###The raw data
+```{r echo=FALSE}
+tournamentinfo_master <- readLines('https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/IS607Fall2015/Project1/tournamentinfo.txt');
+```
+```{r}
+head(tournamentinfo_master, 10);
+#Reference: http://stackoverflow.com/questions/9068397/import-text-file-as-single-character-string
+tournamentinfo <- tournamentinfo_master; #Creating copy of master data, I will be working on this copy.
+```
+###Data scrubbing
+####1.Removing the "---------" lines.  
+The dashed lines are not useful for my analysis and hence I will remove it. 
+```{r}
+tournamentinfo <- str_replace_all(tournamentinfo, "^-+$", "");
+tournamentinfo <- tournamentinfo[sapply(tournamentinfo, nchar) > 0]; #Removing the empty vector elements
+```
+####2.The header has to go.
+I know the various data column names and hence keeping the headers in the file is not needed.
+```{r}
+tournamentinfo <- tournamentinfo[-c(1:2)];
+```
+Lets see how the data is looking now:
+```{r}
+head(tournamentinfo, 4);
+```
+####3.Re-structuring the data
+The data of a single player is spread across two vector elements. I will first restructure the data , so that each vector element has the complete details of a single player.
+For this:
+1. Mark the actual end of line for each player data by appending an indicator.
+```{r}
+#Function adds a * at the end of every vector element at even index. which is the actual end of line. 
+append_separator <- function(x){
+  row_index <- which(tournamentinfo == x);
+  if(row_index %% 2 == 0){
+    x <- paste(x, "*");
+  }else{
+    x;
+  }
+}
+tournamentinfo <- sapply(tournamentinfo, append_separator);
+```
+2. Join all the vector elements into a single string.
+```{r}
+tournamentinfo <- paste(tournamentinfo, collapse = "");
+```
+3. Split the string into vectors seperated by the indicator.
+```{r}
+tournamentinfo <- unlist(strsplit(tournamentinfo, split = "\\*"));
+```
+Lets see how the data is looking now:
+```{r}
+head(tournamentinfo, 4);
+```
+###Subsetting the data
+1. I do not need the data after post game rating.
+```{r}
+tournamentinfo <- unlist(str_extract_all(tournamentinfo, "^(.+?\\|){12}"));
+```
+Lets see how the data is looking now:
+```{r}
+head(tournamentinfo, 1);
+```
+###Regular expressions - A powerful tool
+Now, as I have the data cleaned up, I can grab the various data elements from the string using regular expression.
+```{r}
+#Expression to grab the ID.
+id <- "^\\s+(\\d+)\\s+\\|"; 
+name <- "\\s+([[:alnum:]- ]+)\\b\\s*\\|";
+total_points <- "(\\d+\\.?\\d*)\\s*\\|";
+#Expression to grab result and opponent number. The data is in the format "|W  39|""
+res_opp <- "(\\w)\\s*(\\d{1,})?\\|"; 
+state <- "\\s*(\\w{2})\\s*\\|";
+#Expression to avoid some part which I dont need.
+avoid <- "\\s*.+R:"; 
+pre_rating <- "\\s*(\\d{1,}).*->";
+post_rating <- "\\s*(\\d{1,}).*\\|";
+#Creating the final regex string.
+regex_pattern <- paste(id,name,total_points,res_opp,res_opp,res_opp,res_opp,res_opp,res_opp,res_opp,state,avoid,pre_rating,post_rating, sep = "");
+#Using str_match , getting the data and putting into a data frame. Using stringsAsFactors is very important, as i faced a lot of trouble using the data in further calculations as the default opponent numbers were in factor format. 
+tournamentinfo_final <- as.data.frame(str_match(tournamentinfo, regex_pattern)[,-1], stringsAsFactors = FALSE);
+```
+###Tidy data  
+Let's look at the neat data now.  
+```{r}
+head(tournamentinfo_final, n = 2);
+```
+*I am not renaming the columns yet as there are many columns in the data set which I dont need.*    
+###Average Pre Chess Rating of Opponents    
+The average pre-chess rating of opponents is calculated by adding all the pre-tournament opponents’ ratings and dividing by the total number of games played.
+```{r}
+#Function to calculate the average pre-chess rating of opponents
+calc_avg_pre_opprating <- function(x){
+    total_pre_rating <- 0; 
+    total_opp <- 0; #Counter for number of games
+    opp_columns <- c(5, 7,9,11,13,15,17); #The columns where opponent ID are stored for each player. 
+    for(i in opp_columns){
+      index <- as.character(x[i][1,1]); #The opponent ID which can be used to find the opponents data row.
+      if(!is.na(index)){
+        total_pre_rating = total_pre_rating + as.numeric(tournamentinfo_final[index,19]); #The opponent ID is used to get         player's pre-game rating
+        total_opp = total_opp + 1;
+      }
+    }
+    round(total_pre_rating/total_opp, 0); # The average
+}
+
+tournamentinfo_final <- adply(tournamentinfo_final,.margins = 1, .fun = calc_avg_pre_opprating);
+```
+###Finally !!!  
+I will subset the data frame to include only the rows required.  
+```{r}
+tournamentinfo_final <- tournamentinfo_final[c(1,17,2,18,20)];
+names(tournamentinfo_final) <- c("Player Name", "State", "Rating", "Pre Rating", "Avg Opp Pre-Rating");
+head(tournamentinfo_final, 6);
+```
+Writing the data into csv.
+```{r eval=FALSE}
+write.csv(tournamentinfo_final, file = "ChessReport.csv");
+```
