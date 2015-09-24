@@ -1,6 +1,7 @@
 library(stringr);
 library(plyr);
 tournamentinfo_master <- readLines('https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/IS607Fall2015/Project1/tournamentinfo.txt');
+head(tournamentinfo_master, 10);
 #Ref: http://stackoverflow.com/questions/9068397/import-text-file-as-single-character-string
 tournamentinfo <- tournamentinfo_master;
 str_detect(tournamentinfo, "^-+$");
@@ -28,51 +29,22 @@ avoid <- "\\s*.+R:";
 pre_rating <- "\\s*(\\d{1,}).*->";
 post_rating <- "\\s*(\\d{1,}).*\\|";
 regex_pattern <- paste(id,name,total_points,res_opp,res_opp,res_opp,res_opp,res_opp,res_opp,res_opp,state,avoid,pre_rating,post_rating, sep = "");
-as.data.frame(str_match(tournamentinfo, regex_pattern)[,-1]);
-
-
-
-
-
-
-
-
-
-#############
-temp <- str_split(tournamentinfo, "\\|");
-temp <- lapply(temp, str_trim);
-tournamentinfo_frame <- data.frame(matrix(unlist(temp), nrow = 64, byrow = TRUE), stringsAsFactors = FALSE)
-#http://stackoverflow.com/questions/4227223/r-list-to-data-frame
-tournamentinfo_frame <- tournamentinfo_frame[-c(13)];
-
-
-
-##############
-######functions which didnt work
-
-unlist(temp);
-
-
-
-lapply(temp, str_trim)
-
-data_extract <- function(d){
-  c(str_trim(str_match(d, "\\s+[0-9]{2}\\b")), 
-    str_trim(str_match(d, "^(.+?\\|){1}")),)
+tournamentinfo_final <- as.data.frame(str_match(tournamentinfo, regex_pattern)[,-1], stringsAsFactors = FALSE);
+calc_avg_pre_opprating <- function(x){
+    total_pre_rating <- 0;
+    total_opp <- 0;
+    opp_columns <- c(5, 7,9,11,13,15,17);
+    for(i in opp_columns){
+      index <- as.character(x[i][1,1]);
+      if(!is.na(index)){
+        total_pre_rating = total_pre_rating + as.numeric(tournamentinfo_final[index,19]);
+        total_opp = total_opp + 1;
+      }
+    }
+    round(total_pre_rating/total_opp, 0);
 }
 
-
-str_locate(tournamentinfo[1], ".+")
-
-
-
-sapply(temp, unlist);
-
-str_trim(str_extract(tournamentinfo, "\\|.+?\\|"))
-sapply(tournamentinfo, )
-str_trim(str_match(tournamentinfo, "\\s+[0-9]{2}\\b"));
-
-tournamentinfo <- str_trim(str_split(tournamentinfo, "\\|"));
-#str_c(tournamentinfo, "");
-
-
+tournamentinfo_final <- adply(tournamentinfo_final,.margins = 1, .fun = calc_avg_pre_opprating);
+tournamentinfo_final <- tournamentinfo_final[c(1,17,2,18,20)];
+names(tournamentinfo_final) <- c("Player Name", "State", "Rating", "Pre Rating", "Avg Opp Pre-Rating");
+write.csv(tournamentinfo_final, file = "MyData.csv")
