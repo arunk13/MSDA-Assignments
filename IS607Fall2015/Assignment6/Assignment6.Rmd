@@ -1,0 +1,68 @@
+---
+title: "Tidy Data - Assignment 6 (IS607)"
+author: "Arun Kumar"
+date: "October 4, 2015"
+output: 
+    html_document:
+      toc: yes
+---
+
+###Required libraries  
+```{r}
+library(knitr); #For using kable functions for tables  
+library(tidyr); #For tidying data
+library(dplyr); #For easy data scrubbing and manipulation
+```
+###The raw data  
+####Data download from Github  
+The data is uploaded into my Github repository. Downloading the data to an R object.  
+```{r}
+flights_data_master <- read.table(file = "https://raw.githubusercontent.com/arunk13/MSDA-Assignments/master/IS607Fall2015/Assignment6/FlightStatus.csv", stringsAsFactors = FALSE, sep = ",", header = TRUE, check.names = FALSE);
+flights_data <- flights_data_master; #Working copy
+```
+
+Below is the raw data :
+
+```{r}
+kable(flights_data, align = c('c'));
+
+```
+
+####Variables in the dataset  
+I find the below variables in my dataset :  
+a. Airlines  
+b. Arrival_status  
+c. City  
+
+###Data Scrubbing  
+####1. Converting wide to long format  
+For easier analysis, I will like to convert my dataset from a wide format to a long format. :  
+
+```{r}
+flights_data_long <- flights_data %>% 
+                  gather("City", "Stats", 3:ncol(flights_data));
+kable(head(flights_data_long), align = c('c'));
+```
+
+####2. Data by delay types  
+As we have to do analysis on arrivals, I think that it will be a good idea to spread the arrival and delay times  separately.  
+```{r}
+flights_data_long <- flights_data_long %>% 
+                       spread(Arrival_Status, Stats) %>% 
+                         group_by(Airlines, City);
+kable(flights_data_long, align = c('c'));
+```
+
+###Data Analysis  
+####Arrival delays by airlines  
+```{r}
+flights_data_final <- flights_data_long %>% 
+                          group_by(Airlines) %>% 
+                              summarise(delayed_arrivals = sum(Delayed), on_time_arrivals = sum(`On Time`),`delayed_arrivals(%)` = round((delayed_arrivals /(delayed_arrivals+on_time_arrivals))*100, digits = 2)) %>% select(Airlines, `delayed_arrivals(%)`);
+
+kable(flights_data_final, caption = "Arrival delay comparison by airports", align = c('c'));
+```
+
+###Conclusion
+
+####The Alaska airlines have more arrival delays than the AM West airlines. 
